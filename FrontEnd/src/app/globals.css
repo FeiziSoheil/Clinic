@@ -1,0 +1,595 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================================
+   Vazirmatn — Persian font shipped under /public/Fonts
+   The primary typeface for this RTL-first clinic website.
+   ============================================================================ */
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/Fonts/Vazirmatn-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/Fonts/Vazirmatn-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/Fonts/Vazirmatn-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/Fonts/Vazirmatn-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/Fonts/Vazirmatn-ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Persian / RTL helper. Apply to any Farsi block. */
+.font-vazir {
+  font-family: "Vazirmatn", var(--font-sans), sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Vazirmatn", var(--font-geist-sans), sans-serif;
+  --font-mono: var(--font-geist-mono);
+  --font-heading: "Vazirmatn", var(--font-geist-sans), sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  /* Brand semantic colors exposed to Tailwind utilities */
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-muted: var(--brand-muted);
+  --color-gold: var(--gold);
+  /* Enterprise booking brand ramp + elevation exposed to Tailwind utilities.
+     `--brand` stays the single action color; the ramp powers gradients, soft
+     tints and data accents without oversaturation. */
+  --color-brand-emerald: var(--brand-emerald);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-mint: var(--brand-mint);
+  --color-brand-cyan: var(--brand-cyan);
+  --color-success: var(--success);
+  --shadow-soft: var(--shadow-soft);
+  --shadow-card: var(--shadow-card);
+  --shadow-float: var(--shadow-float);
+  --shadow-glow: var(--shadow-glow);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  /* Fake caret blink used by the input-otp slot when the active slot is empty. */
+  --animate-caret-blink: caret-blink 1.25s ease-out infinite;
+  /* Motion design system — durations & easing (see src/lib/motion/) */
+  --duration-instant: 100ms;
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-moderate: 250ms;
+  --duration-relaxed: 300ms;
+  --duration-slow: 400ms;
+  --duration-slower: 500ms;
+  --ease-out-premium: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-premium: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-soft: cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+/* Blinking caret shown by the shadcn input-otp slot while waiting for input. */
+@keyframes caret-blink {
+  0%,
+  70%,
+  100% {
+    opacity: 1;
+  }
+  20%,
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ============================================================================
+   CLINICK — PREMIUM HEALTHCARE DESIGN SYSTEM
+   A calm, modern, trustworthy palette built on a refined teal (medical trust)
+   paired with deep slate neutrals and a restrained gold accent (luxury).
+   All values are OKLCH for perceptual uniformity and future-proof color.
+   ============================================================================ */
+:root {
+  /* Surfaces */
+  --background: oklch(0.992 0.004 196);
+  --foreground: oklch(0.24 0.025 215);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.24 0.025 215);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.24 0.025 215);
+
+  /* Brand — a calm, premium teal */
+  --brand: oklch(0.51 0.095 187);
+  --brand-foreground: oklch(0.99 0.01 196);
+  --brand-muted: oklch(0.94 0.03 185);
+  --gradient-mid: oklch(0.62 0.13 160);
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+
+  /* Luxury micro-accent — warm muted gold */
+  --gold: oklch(0.82 0.12 84);
+
+  /* ── Enterprise booking brand ramp: Emerald → Teal → Mint (+ cyan/success) ──
+     `--brand` remains the single action color (teal). The ramp powers the
+     hero gradient, soft tints and availability accents. */
+  --brand-emerald: oklch(0.58 0.13 165);
+  --brand-teal: var(--brand);
+  --brand-mint: oklch(0.86 0.05 170);
+  --brand-cyan: oklch(0.78 0.1 200);
+  --success: oklch(0.62 0.14 150);
+
+  /* Subtle booking gradients (hero glow + brand CTAs/bands). */
+  --gradient-brand: linear-gradient(
+    135deg,
+    oklch(0.58 0.13 165),
+    var(--brand) 55%,
+    oklch(0.78 0.1 200)
+  );
+  --gradient-hero-glow: radial-gradient(
+    ellipse 70% 60% at 50% -10%,
+    color-mix(in oklch, var(--brand) 16%, transparent),
+    transparent 60%
+  );
+
+  /* Elevation scale — premium, soft, layered (no harsh drop shadows). */
+  --shadow-soft: 0 1px 2px oklch(0.24 0.025 215 / 0.04),
+    0 8px 24px -12px oklch(0.24 0.025 215 / 0.12);
+  --shadow-card: 0 2px 4px oklch(0.24 0.025 215 / 0.05),
+    0 24px 48px -24px oklch(0.24 0.025 215 / 0.18);
+  --shadow-float: 0 30px 80px -30px oklch(0.24 0.025 215 / 0.35);
+  --shadow-glow: 0 0 0 1px color-mix(in oklch, var(--brand) 30%, transparent),
+    0 12px 40px -12px color-mix(in oklch, var(--brand) 40%, transparent);
+
+  --secondary: oklch(0.965 0.012 196);
+  --secondary-foreground: oklch(0.28 0.03 215);
+
+  --muted: oklch(0.968 0.008 196);
+  --muted-foreground: oklch(0.52 0.02 210);
+
+  --accent: oklch(0.95 0.03 185);
+  --accent-foreground: oklch(0.35 0.06 187);
+
+  --destructive: oklch(0.58 0.22 25);
+  --border: oklch(0.912 0.012 196);
+  --input: oklch(0.912 0.012 196);
+  --ring: var(--brand);
+
+  --chart-1: oklch(0.51 0.095 187);
+  --chart-2: oklch(0.6 0.12 160);
+  --chart-3: oklch(0.7 0.1 80);
+  --chart-4: oklch(0.62 0.13 280);
+  --chart-5: oklch(0.7 0.15 340);
+
+  --radius: 0.875rem;
+
+  --sidebar: oklch(0.985 0.006 196);
+  --sidebar-foreground: oklch(0.24 0.025 215);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--brand-foreground);
+  --sidebar-accent: oklch(0.95 0.03 185);
+  --sidebar-accent-foreground: oklch(0.35 0.06 187);
+  --sidebar-border: oklch(0.912 0.012 196);
+  --sidebar-ring: var(--brand);
+}
+
+.dark {
+  --background: oklch(0.17 0.018 215);
+  --foreground: oklch(0.97 0.008 196);
+
+  --card: oklch(0.21 0.02 215);
+  --card-foreground: oklch(0.97 0.008 196);
+
+  --popover: oklch(0.21 0.02 215);
+  --popover-foreground: oklch(0.97 0.008 196);
+
+  /* Brand brightens slightly on dark for contrast */
+  --brand: oklch(0.72 0.11 187);
+  --brand-foreground: oklch(0.16 0.03 210);
+  --brand-muted: oklch(0.3 0.05 187);
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+
+  --gold: oklch(0.86 0.13 86);
+
+  /* Enterprise booking brand ramp brightened for dark surfaces. */
+  --brand-emerald: oklch(0.7 0.13 165);
+  --brand-teal: var(--brand);
+  --brand-mint: oklch(0.34 0.05 170);
+  --brand-cyan: oklch(0.78 0.1 200);
+  --success: oklch(0.7 0.15 150);
+
+  --secondary: oklch(0.26 0.022 215);
+  --secondary-foreground: oklch(0.97 0.008 196);
+
+  --muted: oklch(0.24 0.02 215);
+  --muted-foreground: oklch(0.72 0.015 200);
+
+  --accent: oklch(0.3 0.05 187);
+  --accent-foreground: oklch(0.92 0.04 187);
+
+  --destructive: oklch(0.7 0.19 22);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: var(--brand);
+
+  --chart-1: oklch(0.72 0.11 187);
+  --chart-2: oklch(0.72 0.12 160);
+  --chart-3: oklch(0.78 0.11 84);
+  --chart-4: oklch(0.74 0.13 280);
+  --chart-5: oklch(0.76 0.15 340);
+
+  --sidebar: oklch(0.2 0.02 215);
+  --sidebar-foreground: oklch(0.97 0.008 196);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--brand-foreground);
+  --sidebar-accent: oklch(0.28 0.03 215);
+  --sidebar-accent-foreground: oklch(0.97 0.008 196);
+  --sidebar-border: oklch(1 0 0 / 9%);
+  --sidebar-ring: var(--brand);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    /* Native-app feel: remove the grey tap highlight on mobile browsers. */
+    -webkit-tap-highlight-color: transparent;
+    /* Disable browser text auto-adjust on orientation change. */
+    -webkit-text-size-adjust: 100%;
+    /* Prevent rubber-band / pull-to-refresh overscroll for an app-like feel. */
+    overscroll-behavior-y: none;
+    /* Allow elements to receive touch without 300ms delay artifacts. */
+    touch-action: manipulation;
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+  body {
+    @apply bg-background text-foreground;
+    /* Ensure the body never overscrolls independently of the viewport. */
+    overscroll-behavior-y: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom scrollbar — refined and brand-tinted ----------------------------- */
+@media (pointer: fine) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--brand) 40%, transparent)
+      transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklch, var(--brand) 35%, transparent);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklch, var(--brand) 55%, transparent);
+  }
+}
+
+/* Hide scrollbar while preserving scroll (TOC, panels, etc.) */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================================================
+   MARKETING SITE — Premium landing page utilities
+   ============================================================================ */
+
+.text-display-xl {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 1.1;
+}
+
+.text-display-lg {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.15;
+}
+
+.text-body-lg {
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
+/* ── Booking experience type scale + surfaces (spec §A.2 / §A.4) ─────────── */
+
+.text-title-lg {
+  font-size: clamp(1.35rem, 2.4vw, 1.875rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.text-eyebrow {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.text-meta {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+/* Brand gradient text — used to highlight ≤3 words in a headline. */
+.text-gradient-brand {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Max-width container with responsive gutters used across booking sections. */
+.booking-container {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 80rem;
+  padding-inline: 1.25rem;
+}
+@media (min-width: 640px) {
+  .booking-container {
+    padding-inline: 2rem;
+  }
+}
+@media (min-width: 1024px) {
+  .booking-container {
+    padding-inline: 2.5rem;
+  }
+}
+
+/* Reusable surface tiers (glass / card / inset) for premium layering. */
+.surface-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+
+.surface-inset {
+  background: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.marketing-section {
+  padding-block: clamp(4rem, 8vw, 6rem);
+}
+
+.marketing-bg-mesh {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, color-mix(in oklch, var(--brand) 12%, transparent), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 0%, color-mix(in oklch, var(--gold) 8%, transparent), transparent),
+    var(--background);
+}
+
+.marketing-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Marketing motion keyframes (used by small CSS micro-animations; the bulk of
+   scroll motion is GSAP-driven, but these cover ambient/hover effects). */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes marketing-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes marketing-glow {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.animate-float {
+  animation: marketing-float 6s ease-in-out infinite;
+}
+
+/* Showcase tab content cross-fade (re-triggers on key change). */
+@keyframes showcase-pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.showcase-pop {
+  animation: showcase-pop 0.4s ease-out;
+}
+
+/* Animated flow along the How-It-Works connector rail.
+   Document is dir=rtl, so steps read right→left; the pulse must match. */
+@keyframes howitworks-flow {
+  0% {
+    transform: translateX(300%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.howitworks-flow {
+  animation: howitworks-flow 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showcase-pop,
+  .howitworks-flow,
+  .animate-float {
+    animation: none;
+  }
+}
+
+@keyframes marketing-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marketing-marquee 45s linear infinite;
+}
+
+.testimonials-marquee:hover .animate-marquee {
+  animation-play-state: paused;
+}
+
+.testimonials-marquee {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 5%,
+    black 95%,
+    transparent
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+
+  .testimonials-marquee {
+    mask-image: none;
+  }
+}
+
+/* Glass surface used by floating hero cards + header backdrop. */
+.marketing-glass {
+  background: color-mix(in oklch, var(--card) 72%, transparent);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+.dark .marketing-glass {
+  background: color-mix(in oklch, var(--card) 55%, transparent);
+}
+
+.marketing-custom-cursor,
+.marketing-custom-cursor * {
+  cursor: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marketing-custom-cursor,
+  .marketing-custom-cursor * {
+    cursor: auto !important;
+  }
+
+  .marketing-cursor-dot,
+  .marketing-cursor-ring {
+    display: none !important;
+  }
+}
+
+/* ============================================================================
+   GLOBAL REDUCED MOTION — app-wide safety net
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

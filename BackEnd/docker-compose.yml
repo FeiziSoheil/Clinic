@@ -1,0 +1,150 @@
+# Docker Compose file for the Clinic API local infrastructure.
+# Provides MongoDB and Redis services for development.
+#
+# network_mode: host is intentional for local `go run` / host-side clients.
+# Transparent proxies (e.g. v2rayA TUN) often make Docker bridge subnets
+# (172.16/12) unreachable from the host, so docker-proxy port publishing
+# accepts TCP then resets. Binding mongod/redis on the host loopback avoids
+# that hop while keeping MONGO_URI/REDIS_URL as localhost.
+services:
+  # --------------------------------------------------------------------------
+  # MongoDB - primary document database for the application.
+  # --------------------------------------------------------------------------
+  # MongoDB is started as a single-node replica set (replSet: rs0). Multi-document
+  # transactions — which the finance service relies on for atomic wallet
+  # mutations — are only supported on a replica set member or mongos, never on a
+  # standalone instance. The init-replset helper below auto-initiates the replica
+  # set on first boot so `docker compose up` is fully self-contained.
+  mongodb:
+    image: mongo:7
+    container_name: clinic-mongodb
+    restart: unless-stopped
+    network_mode: host
+    # Start mongod as a single-node replica set. A keyFile is REQUIRED whenever
+    # authorization (MONGO_INITDB_ROOT_*) is enabled on a replica set — it is
+    # used for internal inter-member authentication. We generate it once into the
+    # data volume (where the official entrypoint chowns everything to the
+    # in-container `mongodb` user, so ownership/permissions are always correct)
+    # and then re-exec the official docker-entrypoint.sh with `mongod` as argv0
+    # so its normal first-run root-user setup still runs.
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - -c
+      - |
+        set -e
+        KEYFILE=/data/db/keyfile
+        if [ ! -f "$$KEYFILE" ]; then
+          echo "mongodb: generating replica-set keyFile"
+          openssl rand -base64 756 | tr -d '\n' > "$$KEYFILE"
+        fi
+        chmod 400 "$$KEYFILE"
+        exec /usr/local/bin/docker-entrypoint.sh mongod --replSet rs0 --bind_ip_all --keyFile "$$KEYFILE"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-password}
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      # A replica-set member reports ismaster:1 once elected. This is a stricter
+      # and more correct liveness check than a bare ping, and it guarantees the
+      # set has been initiated (and can therefore accept transactions) before
+      # dependent services mark this container healthy.
+      test:
+        - "CMD"
+        - "mongosh"
+        - "--quiet"
+        - "-u"
+        - "${MONGO_INITDB_ROOT_USERNAME:-root}"
+        - "-p"
+        - "${MONGO_INITDB_ROOT_PASSWORD:-password}"
+        - "--eval"
+        - "try { db.hello().isWritablePrimary ? quit(0) : quit(1) } catch(e) { quit(1) }"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  # One-shot helper that initiates the single-node replica set once mongodb is
+  # reachable. It runs to completion on every `up` and is a no-op (exit 0) when
+  # the set is already initiated, so it is safe to restart repeatedly.
+  init-replset:
+    image: mongo:7
+    container_name: clinic-init-replset
+    network_mode: host
+    depends_on:
+      mongodb:
+        condition: service_started
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-password}
+    # rs.initiate is idempotent-ish: rs.status()/already-initiated returns a
+    # "no replset config" error when not yet initiated, which is our signal to
+    # initiate. When already initiated, we simply exit 0.
+    # Host networking: both this helper and mongod share the host loopback, so
+    # we talk to 127.0.0.1 (not the compose DNS name "mongodb").
+    entrypoint:
+      - sh
+      - -c
+      - |
+        echo "init-replset: waiting for mongodb to accept connections..."
+        for i in $$(seq 1 30); do
+          if mongosh --quiet --host 127.0.0.1:27017 -u "$${MONGO_INITDB_ROOT_USERNAME}" -p "$${MONGO_INITDB_ROOT_PASSWORD}" --eval 'db.runCommand({ping:1}).ok' >/dev/null 2>&1; then
+            break
+          fi
+          sleep 2
+        done
+        echo "init-replset: initiating replica set rs0 if not already initiated..."
+        mongosh --quiet --host 127.0.0.1:27017 -u "$${MONGO_INITDB_ROOT_USERNAME}" -p "$${MONGO_INITDB_ROOT_PASSWORD}" --eval '
+          // Advertise localhost so host-side Go clients (make run / go run) can
+          // follow the replica-set topology without resolving Docker DNS names.
+          const desiredHost = "localhost:27017";
+          let needInit = false;
+          try {
+            rs.status();
+          } catch (e) {
+            needInit = true;
+          }
+          if (needInit) {
+            print("init-replset: initiating replica set rs0 with member " + desiredHost);
+            printjson(rs.initiate({ _id: "rs0", members: [ { _id: 0, host: desiredHost } ] }));
+          } else {
+            const cfg = rs.conf();
+            if (cfg.members[0].host !== desiredHost) {
+              print("init-replset: reconfiguring member host to " + desiredHost + " (was " + cfg.members[0].host + ")");
+              cfg.members[0].host = desiredHost;
+              printjson(rs.reconfig(cfg, { force: true }));
+            } else {
+              print("init-replset: replica set already initiated as " + rs.status().set + " with host " + desiredHost);
+            }
+          }
+          for (let i = 0; i < 30; i++) {
+            const h = db.hello();
+            if (h.isWritablePrimary) { print("init-replset: node is PRIMARY, ready."); quit(0); }
+            sleep(1000);
+          }
+          print("init-replset: timed out waiting for PRIMARY");
+          quit(1);
+        '
+    restart: "no"
+
+  # --------------------------------------------------------------------------
+  # Redis - used for caching and (future) session/rate-limit support.
+  # --------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: clinic-redis
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+# Named volumes for data persistence.
+volumes:
+  mongo_data:
+  redis_data:

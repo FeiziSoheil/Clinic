@@ -1,0 +1,80 @@
+# ============================================================================
+# Clinick — root .gitignore
+# ============================================================================
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- Editors / IDE ---
+.idea/
+*.swp
+*.swo
+*~
+
+# --- Cursor / local agent ---
+.cursor/debug-*.log
+.cursor/*.log
+
+# --- Env & secrets (never commit) ---
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# --- Logs ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Python (AI sidecar) ---
+AI/.venv/
+AI/__pycache__/
+AI/**/__pycache__/
+AI/.pytest_cache/
+
+# --- Go (BackEnd) ---
+BackEnd/bin/
+BackEnd/dist/
+BackEnd/tmp/
+BackEnd/vendor/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.out
+coverage.html
+
+# --- Node / Next.js (FrontEnd) ---
+FrontEnd/node_modules/
+FrontEnd/.next/
+FrontEnd/out/
+FrontEnd/build/
+FrontEnd/coverage/
+FrontEnd/.vercel/
+FrontEnd/*.tsbuildinfo
+FrontEnd/next-env.d.ts
+
+# --- Package manager ---
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# --- Docker / local data ---
+BackEnd/mongo/data/
+**/docker-data/
+
+# --- Misc ---
+*.pem
+*.key
+*.crt
